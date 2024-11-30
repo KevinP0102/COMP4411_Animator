@@ -37,7 +37,8 @@ Using robotarm.cpp as an example, hook your particle system up to the applicatio
  * Constructors
  ***************/
 
-ParticleSystem::ParticleSystem() {}
+ParticleSystem::ParticleSystem() {
+}
 
 /*************
  * Destructor
@@ -57,12 +58,13 @@ ParticleSystem::~ParticleSystem()
 /** Start the simulation */
 void ParticleSystem::startSimulation(float t)
 {
-    
 	bake_start_time = t;
 	bake_end_time = -1;
 	simulate = true;
 	dirty = true;
 	lastUpdateTime = t;
+
+	particles.clear();
 	clearBaked();
 }
 
@@ -72,7 +74,8 @@ void ParticleSystem::stopSimulation(float t)
 	bake_end_time = t;
 	simulate = false;
 	dirty = true;
-	particles.clear();
+
+	bakedParticles.insert(std::pair<float, std::vector<Particle>>(t, particles));
 }
 
 /** Reset the simulation */
@@ -83,7 +86,7 @@ void ParticleSystem::resetSimulation(float t)
 	simulate = false;
 	dirty = true;
 	particles.clear();
-	bakedParticles.clear();
+	clearBaked();
 }
 
 /** Compute forces and update particles **/
@@ -110,25 +113,7 @@ void ParticleSystem::computeForcesAndUpdateParticles(float t)
 /** Render particles */
 void ParticleSystem::drawParticles(float t)
 {
-	if (bakedParticles.find(t) != bakedParticles.end()) {
-		std::vector<Particle> particles = bakedParticles[t];
-
-		glPointSize(5.0f);
-		glBegin(GL_POINTS);
-		setDiffuseColor(COLOR_WHITE);
-
-		for (int i = 0; i < particles.size(); i++) {
-			Particle& p = particles[i];
-			
-			glVertex3f(p.position[0], p.position[1], p.position[2]);
-		}
-		glEnd();
-	}
-	else {
-
-		if (!simulate) return;
-
-		computeForcesAndUpdateParticles(t);
+	if (simulate) {
 
 		glPointSize(5.0f);
 		glBegin(GL_POINTS);
@@ -140,7 +125,22 @@ void ParticleSystem::drawParticles(float t)
 		}
 
 		glEnd();
+
+	} else if (bakedParticles.find(t) != bakedParticles.end()) {
+		std::vector<Particle> bparticles = bakedParticles[t];
+
+		glPointSize(5.0f);
+		glBegin(GL_POINTS);
+		setDiffuseColor(COLOR_WHITE);
+
+		for (int i = 0; i < bparticles.size(); i++) {
+			Particle& p = bparticles[i];
+
+			glVertex3f(p.position[0], p.position[1], p.position[2]);
+		}
+		glEnd();
 	}
+
 }
 
 
@@ -148,7 +148,7 @@ void ParticleSystem::drawParticles(float t)
   * your data structure for storing baked particles **/
 void ParticleSystem::bakeParticles(float t) 
 {
-	bakedParticles[t] = particles;
+	bakedParticles.insert(std::pair<float, std::vector<Particle>>(t, particles));
 }
 
 /** Clears out your data structure of baked particles */

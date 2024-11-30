@@ -105,7 +105,7 @@ protected:
 	std::vector<Particle> particles;
 	std::map<float, vector<Particle>> bakedParticles;
 	Vec3f gravity = Vec3f(0, -9.8, 0);
-	Vec3f wind = Vec3f(0, 3, 0);
+	Vec3f wind = Vec3f(0, 8, 0);
 	float lastUpdateTime = 0;
 };
 

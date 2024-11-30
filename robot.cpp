@@ -425,7 +425,6 @@ void Robot::draw()
 				SpawnParticles(cameraM);
 
 				drawSolidTorus(0.1, 0.5, 10, 30);
-				
 
 				glPopMatrix();
 				
