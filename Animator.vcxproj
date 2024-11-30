@@ -273,6 +273,7 @@
     <ClInclude Include="curveevaluator.h" />
     <ClInclude Include="linearcurveevaluator.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="mat.h" />
     <ClInclude Include="modelerdraw.h" />
     <ClInclude Include="modelerui.h" />
     <ClInclude Include="modeleruiwindows.h" />
@@ -287,7 +288,6 @@
     <ClInclude Include="modelerapp.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="rulerwindow.h" />
-    <ClInclude Include="mat.h" />
     <ClInclude Include="vec.h" />
   </ItemGroup>
   <ItemGroup>

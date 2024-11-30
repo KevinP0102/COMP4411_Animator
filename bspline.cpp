@@ -1,5 +1,6 @@
 #include "BsplineCurveEvaluator.h"
-#include <assert.h>
+#include "mat.h"
+#include "vec.h"
 
 void BsplineCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 	std::vector<Point>& ptvEvaluatedCurvePts,
@@ -7,30 +8,75 @@ void BsplineCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 	const bool& bWrap) const
 {
 	ptvEvaluatedCurvePts.clear();
+
+	const Mat4d convert = Mat4d(
+		1, 4, 1, 0,
+		0, 4, 2, 0,
+		0, 2, 4, 0,
+		0, 1, 4, 1) 
+		/ 6.0;
+	
+	const Mat4d ker(
+		-1, 3, -3, 1,
+		3, -6, 3, 0,
+		-3, 3, 0, 0,
+		1, 0, 0, 0);
+
 	std::vector<Point> ctrlPts = ptvCtrlPts;
-	if (bWrap) {
-		ctrlPts.push_back(Point(ptvCtrlPts[0].x + fAniLength, ptvCtrlPts[0].y));
-		ctrlPts.push_back(Point(ptvCtrlPts[ptvCtrlPts.size() - 1].x - fAniLength, ptvCtrlPts[1].y));
+
+	if (bWrap)
+	{
+		ctrlPts.push_back(Point(ctrlPts[0].x + fAniLength, ctrlPts[0].y));
+		ctrlPts.push_back(Point(ctrlPts[1].x + fAniLength, ctrlPts[1].y));
+		ctrlPts.push_back(Point(ctrlPts[2].x + fAniLength, ctrlPts[2].y));
 	}
-	else {
-		ptvEvaluatedCurvePts.push_back(Point(0, ptvCtrlPts[0].y));
-		ptvEvaluatedCurvePts.push_back(Point(fAniLength, ptvCtrlPts[ptvCtrlPts.size() - 1].y));
+	else
+	{
+		ctrlPts.push_back(ptvCtrlPts[ptvCtrlPts.size() - 1]);
+		ctrlPts.insert(ctrlPts.begin(), ptvCtrlPts[0]);
 	}
-	int n = ctrlPts.size() - 1;
-	for (int i = 0; i < n - 2; i++) {
-		for (int j = 0; j < s_iSegCount; j++) {
-			float t = (float)j / s_iSegCount;
-			float t2 = t * t;
-			float t3 = t2 * t;
-			float x = (float)(-1.0 / 6 * t3 + 1.0 / 2 * t2 - 1.0 / 2 * t + 1.0 / 6) * ctrlPts[i].x
-				+ (float)(1.0 / 2 * t3 - t2 + 2.0 / 3 - 1.0 / 2) * ctrlPts[i + 1].x
-				+ (float)(-1.0 / 2 * t3 + 1.0 / 2 * t2 + 1.0 / 2 * t + 1.0 / 6) * ctrlPts[i + 2].x
-				+ (float)(1.0 / 6 * t3) * ctrlPts[i + 3].x;
-			float y = (float)(-1.0 / 6 * t3 + 1.0 / 2 * t2 - 1.0 / 2 * t + 1.0 / 6) * ctrlPts[i].y
-				+ (float)(1.0 / 2 * t3 - t2 + 2.0 / 3 - 1.0 / 2) * ctrlPts[i + 1].y
-				+ (float)(-1.0 / 2 * t3 + 1.0 / 2 * t2 + 1.0 / 2 * t + 1.0 / 6) * ctrlPts[i + 2].y
-				+ (float)(1.0 / 6 * t3) * ctrlPts[i + 3].y;
-			ptvEvaluatedCurvePts.push_back(Point(x, y));
+
+
+
+	for (int i = 0; i < ((int)ctrlPts.size() - 3); ++i)
+	{
+		Vec4d ctrl_x(ctrlPts[i].x, 
+					 ctrlPts[i + 1].x,
+					 ctrlPts[i + 2].x, 
+					 ctrlPts[i + 3].x);
+
+		Vec4d ctrl_y(ctrlPts[i].y, 
+					 ctrlPts[i + 1].y,
+					 ctrlPts[i + 2].y, 
+					 ctrlPts[i + 3].y);
+
+		Vec4d convert_x = convert * ctrl_x;
+		Vec4d convert_y = convert * ctrl_y;
+
+		for (int j = 0; j < s_iSegCount; ++j)
+		{
+			double t = j / (double)s_iSegCount;
+
+			Vec4d p(t * t * t, t * t, t, 1);
+
+			float x = (float)(p * ker * convert_x);
+			float y = (float)(p * ker * convert_y);
+
+			if (x > fAniLength)
+			{
+				x -= fAniLength;
+			}
+
+			Point pt(x, y);
+			ptvEvaluatedCurvePts.push_back(pt);
 		}
+	}
+
+	if (!bWrap)
+	{
+		ptvEvaluatedCurvePts.push_back(Point(0, ptvCtrlPts[0].y));
+		ptvEvaluatedCurvePts.push_back(ptvCtrlPts[0]);
+		ptvEvaluatedCurvePts.push_back(Point(fAniLength, ptvCtrlPts[ptvCtrlPts.size() - 1].y));
+		ptvEvaluatedCurvePts.push_back(ptvCtrlPts[ptvCtrlPts.size() - 1]);
 	}
 }

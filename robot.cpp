@@ -6,6 +6,7 @@
 #include <FL/glu.h>
 #include "vec.h"
 #include "bitmap.h"
+#include "mat.h"
 
 // Colors
 #define COLOR_RED		1.0f, 0.0f, 0.0f
@@ -151,9 +152,49 @@ void Robot::drawSolidTorus(GLfloat innerRadius, GLfloat outerRadius, GLint sides
 	}
 }
 
+Mat4f getModelViewMatrix()
+{
+	/**************************
+	**
+	**	GET THE OPENGL MODELVIEW MATRIX
+	**
+	**	Since OpenGL stores it's matricies in
+	**	column major order and our library
+	**	use row major order, we will need to
+	**	transpose what OpenGL gives us before returning.
+	**
+	**	Hint:  Use look up glGetFloatv or glGetDoublev
+	**	for how to get these values from OpenGL.
+	**
+	*******************************/
+
+	GLfloat m[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, m);
+	Mat4f matMV(m[0], m[1], m[2], m[3],
+		m[4], m[5], m[6], m[7],
+		m[8], m[9], m[10], m[11],
+		m[12], m[13], m[14], m[15]);
+
+	return matMV.transpose(); // convert to row major
+}
+
+void SpawnParticles(Mat4f Camera) {
+	Mat4f curMV = getModelViewMatrix();
+
+	Mat4f worldM = Camera.inverse() * curMV;
+
+	Vec4f pos = worldM * Vec4f(0, 0, 0, 1);
+
+	Vec3f location(pos[0], pos[1], pos[2]);
+
+	ModelerApplication::Instance()->GetParticleSystem()->addNewParticle(location);
+}
+
 void Robot::draw()
 {
 	ModelerView::draw();
+
+	Mat4f cameraM = getModelViewMatrix();
 
 	glEnable(GL_LIGHT2);
 
@@ -380,6 +421,9 @@ void Robot::draw()
 
 				setDiffuseColor(COLOR_WHITE);
 				glTranslated(0, 0, VAL(NECKHEIGHT) + VAL(HEADSCALE)-0.5);
+
+				SpawnParticles(cameraM);
+
 				drawSolidTorus(0.1, 0.5, 10, 30);
 				
 
@@ -465,6 +509,8 @@ void Robot::draw()
 		glPopMatrix();
 
 	glPopMatrix();
+
+	endDraw();
 }
 
 int main() {
@@ -506,6 +552,9 @@ int main() {
 	controls[LSYSDEPTH] = ModelerControl("L-System Depth", 1, 5, 1, 3);
 	controls[LSYSLENGTHREDUCTION] = ModelerControl("L-System Length Reduction", 0.5, 1, 0.1, 0.8);
 
+	ParticleSystem* ps = new ParticleSystem();
+
+	ModelerApplication::Instance()->SetParticleSystem(ps);
 	ModelerApplication::Instance()->Init(&createRobot, controls, TOTAL);
 
 	return ModelerApplication::Instance()->Run();

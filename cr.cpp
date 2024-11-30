@@ -11,18 +11,22 @@ void CRCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 
 	std::vector<Point> ctrlPts = ptvCtrlPts;
 
-	if (bWrap) {
+	if (bWrap)
+	{
+		ctrlPts.insert(ctrlPts.begin(), Point(ptvCtrlPts[ptvCtrlPts.size() - 1].x - fAniLength, ptvCtrlPts[ptvCtrlPts.size() - 1].y));
+		ctrlPts.insert(ctrlPts.begin(), Point(ptvCtrlPts[ptvCtrlPts.size() - 2].x - fAniLength, ptvCtrlPts[ptvCtrlPts.size() - 2].y));
 		ctrlPts.push_back(Point(ptvCtrlPts[0].x + fAniLength, ptvCtrlPts[0].y));
-		ctrlPts.push_back(Point(ptvCtrlPts[ptvCtrlPts.size() - 1].x - fAniLength, ptvCtrlPts[1].y));
+		ctrlPts.push_back(Point(ptvCtrlPts[1].x + fAniLength, ptvCtrlPts[1].y));
 	}
-	else {
-		ptvEvaluatedCurvePts.push_back(Point(0, ptvCtrlPts[0].y));
-		ptvEvaluatedCurvePts.push_back(Point(fAniLength, ptvCtrlPts[ptvCtrlPts.size() - 1].y));
+	else
+	{
+		ctrlPts.push_back(ptvCtrlPts[ptvCtrlPts.size() - 1]);
+		ctrlPts.insert(ctrlPts.begin(), ptvCtrlPts[0]);
 	}
 
-	int n = ctrlPts.size() - 1;
+	int n = ctrlPts.size();
 
-	for (int i = 0; i < n - 2; i++) {
+	for (int i = 0; i < n - 3; i++) {
 		for (int j = 0; j < s_iSegCount; j++) {
 			float t = (float)j / s_iSegCount;
 			float t2 = t * t;
@@ -40,4 +44,22 @@ void CRCurveEvaluator::evaluateCurve(const std::vector<Point>& ptvCtrlPts,
 		}
 	}
 
+	auto it = ptvEvaluatedCurvePts.begin() + 1;
+	while (it != ptvEvaluatedCurvePts.end()) {
+		if (it->x <= (it - 1)->x) {
+			it = ptvEvaluatedCurvePts.erase(it);
+		}
+		else {
+			++it;
+		}
+	}
+
+
+	if (!bWrap)
+	{
+		ptvEvaluatedCurvePts.push_back(Point(0, ptvCtrlPts[0].y));
+		//ptvEvaluatedCurvePts.push_back(ptvCtrlPts[0]);
+		ptvEvaluatedCurvePts.push_back(Point(fAniLength, ptvCtrlPts[ptvCtrlPts.size() - 1].y));
+		//ptvEvaluatedCurvePts.push_back(ptvCtrlPts[ptvCtrlPts.size() - 1]);
+	}
 }

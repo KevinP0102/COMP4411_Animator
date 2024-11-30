@@ -1,4 +1,5 @@
-#pragma warning(disable : 4786)  
+#ifndef BSPLINECURVEEVALUATOR_H
+#define BSPLINECURVEEVALUATOR_H
 
 #include "CurveEvaluator.h"
 
@@ -12,3 +13,5 @@ public:
 		const float& fAniLength,
 		const bool& bWrap) const;
 };
+
+#endif 

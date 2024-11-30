@@ -167,12 +167,6 @@
     <ClInclude Include="rulerwindow.h">
       <Filter>Header Files\UI.</Filter>
     </ClInclude>
-    <ClInclude Include="mat.h">
-      <Filter>Header Files\Math.</Filter>
-    </ClInclude>
-    <ClInclude Include="vec.h">
-      <Filter>Header Files\Math.</Filter>
-    </ClInclude>
     <ClInclude Include="beziercurveevaluator.h">
       <Filter>Header Files\Curves.</Filter>
     </ClInclude>
@@ -181,6 +175,12 @@
     </ClInclude>
     <ClInclude Include="crcurveevaluator.h">
       <Filter>Header Files\Curves.</Filter>
+    </ClInclude>
+    <ClInclude Include="mat.h">
+      <Filter>Header Files\Math.</Filter>
+    </ClInclude>
+    <ClInclude Include="vec.h">
+      <Filter>Header Files\Math.</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

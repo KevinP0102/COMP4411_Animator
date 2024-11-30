@@ -17,8 +17,19 @@
 #define __PARTICLE_SYSTEM_H__
 
 #include "vec.h"
+#include <map>
+#include <vector>
 
+class Particle {
+public:
+	Vec3f position;
+	Vec3f velocity;
+	Vec3f force;
+	float mass;
 
+	Particle(Vec3f pos, Vec3f vel, Vec3f f, float m) : position(pos), velocity(vel), force(f), mass(m){}
+	Particle() : position(Vec3f(0, 0, 0)), velocity(Vec3f(10, 10, 0)), force(Vec3f(0, 0, 0)), mass(1){}
+};
 
 class ParticleSystem {
 
@@ -62,6 +73,7 @@ public:
 	// of baked particles (without leaking memory).
 	virtual void clearBaked();	
 
+	virtual void addNewParticle(Vec3f location);
 
 
 	// These accessor fxns are implemented for you
@@ -72,8 +84,8 @@ public:
 	bool isDirty() { return dirty; }
 	void setDirty(bool d) { dirty = d; }
 
-
-
+	
+    
 protected:
 	
 
@@ -89,6 +101,12 @@ protected:
 	bool simulate;						// flag for simulation mode
 	bool dirty;							// flag for updating ui (don't worry about this)
 
+
+	std::vector<Particle> particles;
+	std::map<float, vector<Particle>> bakedParticles;
+	Vec3f gravity = Vec3f(0, -9.8, 0);
+	Vec3f wind = Vec3f(0, 3, 0);
+	float lastUpdateTime = 0;
 };
 
 
